@@ -1,4 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+@font-face {
+  font-family: 'Inter';
+  src: url('../fonts/inter-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('../fonts/space-grotesk-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+}
 
 :root {
   --bg-dark: #05080d;
@@ -18,10 +32,10 @@
 
   --silver-bright: #f8fafc;
   --silver-mid: #cbd5e1;
-  --silver-dark: #64748b;
+  --silver-dark: #94a3b8;
   --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-secondary: #b6c2d2;
+  --text-muted: #94a3b8;
 
   --border-glass: rgba(255, 255, 255, 0.09);
   --border-cyan: rgba(0, 240, 255, 0.3);
@@ -491,6 +505,7 @@ body {
 
 .hero-preview-img {
   width: 100%;
+  height: auto;
   border-radius: var(--radius-md);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
   display: block;
@@ -848,6 +863,20 @@ body {
   gap: 10px;
   font-size: 0.88rem;
   color: var(--silver-mid);
+}
+
+.service-detail-link {
+  display: inline-flex;
+  margin-top: 22px;
+  color: var(--cyan-neon);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.service-detail-link:hover,
+.service-detail-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .check-icon {
@@ -1317,7 +1346,7 @@ input:checked + .slider:before {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 35px rgba(0, 240, 255, 0.15);
 }
 
-.contact-info h3 {
+.contact-info h2 {
   font-family: var(--font-display);
   font-size: 2.2rem;
   font-weight: 800;
@@ -1468,6 +1497,31 @@ input:checked + .slider:before {
   text-decoration: none;
 }
 
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.footer-links a:focus-visible,
+.social-link:focus-visible,
+.nav-link:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--cyan-neon);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+  #particle-canvas { display: none; }
+}
+
 /* Modal for Project Preview */
 .modal-backdrop {
   position: fixed;
@@ -1585,6 +1639,15 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 768px) {
+  #particle-canvas {
+    display: none;
+  }
+
+  .glow-orb {
+    animation: none;
+    filter: blur(90px);
+  }
+
   .nav-menu {
     display: none;
   }

@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function initParticleCanvas() {
   const canvas = document.getElementById('particle-canvas');
   if (!canvas) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (window.matchMedia('(max-width: 768px)').matches) return;
   const ctx = canvas.getContext('2d');
 
   let width = 0;
@@ -34,7 +36,7 @@ function initParticleCanvas() {
   resizeCanvas();
 
   const particles = [];
-  const particleCount = Math.min(Math.floor(window.innerWidth / 20), 65);
+  const particleCount = Math.min(Math.floor(window.innerWidth / 32), 36);
 
   for (let i = 0; i < particleCount; i++) {
     particles.push({
@@ -86,6 +88,7 @@ function initParticleCanvas() {
   });
 
   function render() {
+    if (document.hidden) return;
     ctx.save();
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, width, height);
@@ -147,6 +150,10 @@ function initParticleCanvas() {
     requestAnimationFrame(render);
   }
 
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) requestAnimationFrame(render);
+  });
+
   render();
 }
 
@@ -165,21 +172,7 @@ function initCalculator() {
   const summaryTotalValue = document.getElementById('summary-total-value');
   const btnSendWhatsApp = document.getElementById('btn-send-calc-whatsapp');
 
-  // Sync with Admin Settings if present in localStorage
-  const savedServices = JSON.parse(localStorage.getItem('gs_services') || 'null');
-  if (savedServices && savedServices.length > 0) {
-    projectCards.forEach((card, idx) => {
-      if (savedServices[idx]) {
-        card.setAttribute('data-calc-name', savedServices[idx].name);
-        card.setAttribute('data-calc-price', savedServices[idx].price);
-        const nameSpan = card.querySelector('.calc-card-name');
-        if (nameSpan) nameSpan.textContent = savedServices[idx].name.split(' ')[0] + ' ' + (savedServices[idx].name.split(' ')[1] || '');
-      }
-    });
-  }
-
-  const savedMaintPrice = parseInt(localStorage.getItem('gs_maint_price') || '189', 10);
-  let maintenancePrice = savedMaintPrice;
+  const maintenancePrice = 189;
 
   let currentProject = {
     name: projectCards[0] ? projectCards[0].getAttribute('data-calc-name') : 'Landing Page de Alta Conversão',
@@ -243,7 +236,7 @@ function initCalculator() {
       summaryTotalValue.innerHTML = totalText;
     }
 
-    // Update WhatsApp link & save lead on click
+    // Update WhatsApp link and track the conversion when analytics is configured.
     if (btnSendWhatsApp) {
       const msg = `Olá GS Digital! Fiz uma simulação de projeto no site:%0A%0A` +
         `🚀 *Projeto:* ${currentProject.name}%0A` +
@@ -252,21 +245,13 @@ function initCalculator() {
         `Gostaria de formalizar uma proposta e dar início!`;
       btnSendWhatsApp.href = `https://wa.me/5511968799692?text=${msg}`;
 
-      btnSendWhatsApp.onclick = () => {
-        // Save to Admin Leads
-        const leads = JSON.parse(localStorage.getItem('gs_leads') || '[]');
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        leads.unshift({
-          date: dateStr,
-          client: 'Lead pelo Simulador',
-          service: currentProject.name,
-          price: `R$ ${calculatedProjectPrice.toLocaleString('pt-BR')}`,
-          maint: maintenanceActive ? 'Sim' : 'Não',
-          phone: '5511968799692'
-        });
-        localStorage.setItem('gs_leads', JSON.stringify(leads));
-      };
+      btnSendWhatsApp.onclick = () => trackEvent('generate_lead', {
+        channel: 'whatsapp',
+        source: 'simulator',
+        service: currentProject.name,
+        value: calculatedProjectPrice,
+        currency: 'BRL'
+      });
     }
   }
 
@@ -282,7 +267,7 @@ const portfolioData = {
     title: 'NOCTURNAL® — Loja Virtual & Streetwear',
     category: 'E-commerce & Lojas Virtuais',
     desc: 'Loja virtual de alta performance para marca de moda urbana e streetwear. Arquitetura headless ultrarrápida, gaveta lateral de carrinho com atualização de frete e cupom em tempo real, e simulação completa de checkout com geração de QR Code Pix e cópia de chave.',
-    metrics: ['Carrinho Reativo Instantâneo', 'Checkout Pix Integrado', '99/100 Performance Mobile'],
+    metrics: ['Carrinho reativo', 'Checkout Pix demonstrativo', 'Layout responsivo'],
     image: 'assets/images/cover_ecommerce.jpg',
     stack: 'HTML5 Moderno, Vanilla JS Reativo, Otimização WebP, Gateway Pix',
     liveUrl: 'demos/ecommerce/index.html'
@@ -291,7 +276,7 @@ const portfolioData = {
     title: 'Valente & Prado — Sociedade de Advogados',
     category: 'Profissionais Liberais / Direito Corporativo',
     desc: 'Site institucional corporativo de prestígio para banca jurídica especializada em Direito Tributário, Societário e Fusões & Aquisições (M&A). Inclui apresentação de sócios mestres pela USP/PUC, formulário de diagnóstico sob sigilo e atendimento prioritário.',
-    metrics: ['Autoridade Visual & Prestígio', 'Formulário com Sigilo OAB', 'Estrutura Otimizada para SEO'],
+    metrics: ['Hierarquia editorial', 'Formulário de triagem', 'Estrutura semântica'],
     image: 'assets/images/cover_advocacia.jpg',
     stack: 'Design Editorial Luxo, Tipografia Cinzel, Formulário de Triagem, Alta Performance',
     liveUrl: 'demos/advocacia/index.html'
@@ -318,7 +303,7 @@ const portfolioData = {
     title: 'Horizon Ocean Residences — Empreendimento Frente Mar',
     category: 'Landing Pages / Lançamento Imobiliário',
     desc: 'Landing page de altíssima conversão para lançamento imobiliário de alto padrão no litoral. Conta com seletor interativo de plantas (168 a 420m² duplex), tour visual do condomínio, simulador de fluxo de pagamento na obra e captura automática de leads.',
-    metrics: ['+48% de Conversão em Leads', 'Simulador de Financiamento Direto', 'Apresentação Interativa de Plantas'],
+    metrics: ['Captação de leads', 'Simulador demonstrativo', 'Apresentação interativa de plantas'],
     image: 'assets/images/cover_imobiliaria.jpg',
     stack: 'Arquitetura de Alta Conversão, Simulador Financeiro JS, Plantas Dinâmicas',
     liveUrl: 'demos/imobiliaria/index.html'
@@ -386,7 +371,8 @@ function initPortfolio() {
     document.getElementById('modal-title').textContent = data.title;
     document.getElementById('modal-category').textContent = data.category;
     document.getElementById('modal-desc').textContent = data.desc;
-    document.getElementById('modal-img').src = data.image;
+    const modalImage = document.getElementById('modal-img');
+    modalImage.src = data.image.replace(/\.jpg$/i, '.webp');
     document.getElementById('modal-stack').textContent = data.stack;
 
     const liveLinkBtn = document.getElementById('modal-live-demo-link');
@@ -404,11 +390,16 @@ function initPortfolio() {
     });
 
     modalBackdrop.classList.add('active');
+    modalBackdrop.removeAttribute('inert');
+    modalBackdrop.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    modalClose.focus();
   }
 
   function closeModal() {
     modalBackdrop.classList.remove('active');
+    modalBackdrop.setAttribute('aria-hidden', 'true');
+    modalBackdrop.setAttribute('inert', '');
     document.body.style.overflow = '';
   }
 }
@@ -424,9 +415,11 @@ function initNavigation() {
   const navMenu = document.querySelector('.nav-menu');
 
   if (mobileToggle && navMenu) {
+    mobileToggle.setAttribute('aria-expanded', 'false');
     mobileToggle.addEventListener('click', () => {
       const isVisible = navMenu.style.display === 'flex';
       navMenu.style.display = isVisible ? 'none' : 'flex';
+      mobileToggle.setAttribute('aria-expanded', String(!isVisible));
       navMenu.style.flexDirection = 'column';
       navMenu.style.position = 'absolute';
       navMenu.style.top = '70px';
@@ -437,6 +430,13 @@ function initNavigation() {
       navMenu.style.borderRadius = '16px';
       navMenu.style.padding = '20px';
     });
+
+    navLinks.forEach(link => link.addEventListener('click', () => {
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        navMenu.style.display = 'none';
+        mobileToggle.setAttribute('aria-expanded', 'false');
+      }
+    }));
   }
 
   window.addEventListener('scroll', () => {
@@ -479,20 +479,6 @@ function initContactForm() {
     const service = document.getElementById('contact-service').value;
     const message = document.getElementById('contact-message').value;
 
-    // Save lead into Admin storage
-    const leads = JSON.parse(localStorage.getItem('gs_leads') || '[]');
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    leads.unshift({
-      date: dateStr,
-      client: name,
-      service: service,
-      price: 'Sob Consulta',
-      maint: 'Pendente',
-      phone: '5511968799692'
-    });
-    localStorage.setItem('gs_leads', JSON.stringify(leads));
-
     const whatsappText = `Olá GS Digital! Meu nome é ${encodeURIComponent(name)}.%0A%0A` +
       `Estou interessado em: *${encodeURIComponent(service)}*.%0A%0A` +
       `Mensagem: ${encodeURIComponent(message)}`;
@@ -502,8 +488,13 @@ function initContactForm() {
     submitBtn.style.opacity = '0.8';
 
     setTimeout(() => {
+      trackEvent('generate_lead', {
+        channel: 'whatsapp',
+        source: 'contact_form',
+        service
+      });
       window.open(`https://wa.me/5511968799692?text=${whatsappText}`, '_blank');
-      submitBtn.innerHTML = `<span>Mensagem Enviada!</span> ✓`;
+      submitBtn.innerHTML = `<span>Conversa aberta no WhatsApp</span> ✓`;
       submitBtn.style.background = '#10b981';
       form.reset();
 
@@ -514,4 +505,12 @@ function initContactForm() {
       }, 4000);
     }, 600);
   });
+}
+
+function trackEvent(name, params = {}) {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: name, ...params });
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', name, params);
+  }
 }
